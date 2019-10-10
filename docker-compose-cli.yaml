@@ -1,0 +1,127 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.example.com:
+  peer0.jio.domin.com:
+  peer1.jio.domin.com:
+  peer0.airtel.domain.com:
+  peer1.airtel.domain.com:
+
+networks:
+  jioairtel:
+
+services:
+
+  orderer.example.com:
+    extends:
+      file:   base/docker-compose-base.yaml
+      service: orderer.example.com
+    container_name: orderer.example.com
+    networks:
+      - jioairtel
+
+  peer0.jio.domin.com:
+    container_name: peer0.jio.domin.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.jio.domin.com
+    networks:
+      - jioairtel
+
+  peer1.jio.domin.com:
+    container_name: peer1.jio.domin.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.jio.domin.com
+    networks:
+      - jioairtel
+
+  peer0.airtel.domain.com:
+    container_name: peer0.airtel.domain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.airtel.domain.com
+    networks:
+      - jioairtel
+
+  peer1.airtel.domain.com:
+    container_name: peer1.airtel.domain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.airtel.domain.com
+    networks:
+      - jioairtel
+
+  jio_cli:
+    container_name: jio_cli
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+      - SYS_CHANNEL=$SYS_CHANNEL
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=jio_cli
+      - CORE_PEER_ADDRESS=peer0.jio.domin.com:7051
+      - CORE_PEER_LOCALMSPID=JIOMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/jio.domin.com/peers/peer0.jio.domin.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/jio.domin.com/peers/peer0.jio.domin.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/jio.domin.com/peers/peer0.jio.domin.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/jio.domin.com/users/Admin@jio.domin.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./../chaincode/:/opt/gopath/src/github.com/chaincode
+        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        # - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.example.com
+      - peer0.jio.domin.com
+      - peer1.jio.domin.com
+    networks:
+      - jioairtel
+
+
+  airtel_cli:
+    container_name: airtel_cli
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+      - SYS_CHANNEL=$SYS_CHANNEL
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=airtel_cli
+      - CORE_PEER_ADDRESS=peer0.airtel.domain.com:9051
+      - CORE_PEER_LOCALMSPID=AILMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/airtel.domain.com/peers/peer0.airtel.domain.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/airtel.domain.com/peers/peer0.airtel.domain.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/airtel.domain.com/peers/peer0.airtel.domain.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/airtel.domain.com/users/Admin@airtel.domain.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./../chaincode/:/opt/gopath/src/github.com/chaincode
+        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        # - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.example.com
+      - peer0.airtel.domain.com
+      - peer1.airtel.domain.com
+    networks:
+      - jioairtel      
